@@ -91,6 +91,7 @@ def output_frames(
             # write to the converter for the camera if clients are listening to the specific camera
             jsmpeg_cameras[camera].write_frame(frame.tobytes())
 
+        # send output data to birdseye if websocket is connected or restreaming
         if config.birdseye.enabled and (
             config.birdseye.restream
             or any(
@@ -106,6 +107,9 @@ def output_frames(
                 frame,
             )
 
+        # TODO send frames for low fps recording
+
+        # delete frames after they have been used for output
         if camera in previous_frames:
             frame_manager.delete(f"{camera}{previous_frames[camera]}")
 
