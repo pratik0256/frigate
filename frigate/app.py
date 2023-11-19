@@ -40,7 +40,7 @@ from frigate.log import log_process, root_configurer
 from frigate.models import Event, Recordings, RecordingsToDelete, Regions, Timeline
 from frigate.object_detection import ObjectDetectProcess
 from frigate.object_processing import TrackedObjectProcessor
-from frigate.output import output_frames
+from frigate.output.output import output_frames
 from frigate.plus import PlusApi
 from frigate.ptz.autotrack import PtzAutoTrackerThread
 from frigate.ptz.onvif import OnvifController
