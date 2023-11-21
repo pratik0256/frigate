@@ -20,7 +20,7 @@ from frigate.comms.ws import WebSocket
 from frigate.config import FrigateConfig
 from frigate.output.birdseye import Birdseye
 from frigate.output.camera import JsmpegCamera
-from frigate.output.summary import SummaryRecorder
+from frigate.output.preview import PreviewRecorder
 from frigate.types import CameraMetricsTypes
 from frigate.util.image import SharedMemoryFrameManager
 
@@ -60,14 +60,14 @@ def output_frames(
 
     jsmpeg_cameras: dict[str, JsmpegCamera] = {}
     birdseye: Optional[Birdseye] = None
-    summary_recorders: dict[str, SummaryRecorder] = {}
+    preview_recorders: dict[str, PreviewRecorder] = {}
 
     for camera, cam_config in config.cameras.items():
         if not cam_config.enabled:
             continue
 
         jsmpeg_cameras[camera] = JsmpegCamera(cam_config, stop_event, websocket_server)
-        summary_recorders[camera] = SummaryRecorder(cam_config)
+        preview_recorders[camera] = PreviewRecorder(cam_config)
 
     if config.birdseye.enabled:
         birdseye = Birdseye(config, camera_metrics, stop_event, websocket_server)
@@ -114,7 +114,7 @@ def output_frames(
             )
 
         # send frames for low fps recording
-        summary_recorders[camera].write_data(
+        preview_recorders[camera].write_data(
             current_tracked_objects, motion_boxes, frame_time, frame
         )
 

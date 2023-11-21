@@ -1,4 +1,4 @@
-"""Handle outputting low res / fps summary segments from decoded frames."""
+"""Handle outputting low res / fps preview segments from decoded frames."""
 
 import logging
 import os
@@ -17,6 +17,7 @@ from frigate.ffmpeg_presets import (
 
 logger = logging.getLogger(__name__)
 
+FOLDER_PREVIEW_FRAMES = "preview_frames"
 SUMMARY_OUTPUT_FPS = 1
 SUMMARY_SEGMENT_DURATION = 60
 
@@ -43,8 +44,6 @@ class FFMpegConverter(threading.Thread):
         )
         # TODO figure out file structure and where files are saved
 
-        logger.error(f"Command is {self.ffmpeg_cmd}")
-
     def run(self) -> None:
         # generate input list
         last = self.frame_times[0]
@@ -52,14 +51,14 @@ class FFMpegConverter(threading.Thread):
 
         for t in self.frame_times:
             playlist.append(
-                f"file '{os.path.join(CACHE_DIR, f'summary_{self.camera}-{t}.jpg')}'"
+                f"file '{os.path.join(CACHE_DIR, f'{FOLDER_PREVIEW_FRAMES}/summary_{self.camera}-{t}.jpg')}'"
             )
             playlist.append(f"duration {t - last}")
             last = t
 
         # last frame must be included again with no duration
         playlist.append(
-            f"file '{os.path.join(CACHE_DIR, f'summary_{self.camera}-{self.frame_times[-1]}.jpg')}'"
+            f"file '{os.path.join(CACHE_DIR, f'{FOLDER_PREVIEW_FRAMES}/summary_{self.camera}-{self.frame_times[-1]}.jpg')}'"
         )
         print("\n".join(playlist))
 
@@ -78,10 +77,14 @@ class FFMpegConverter(threading.Thread):
 
         # unlink files from cache
         for t in self.frame_times:
-            os.unlink(os.path.join(CACHE_DIR, f"summary_{self.camera}-{t}.jpg"))
+            os.unlink(
+                os.path.join(
+                    CACHE_DIR, f"{FOLDER_PREVIEW_FRAMES}/summary_{self.camera}-{t}.jpg"
+                )
+            )
 
 
-class SummaryRecorder:
+class PreviewRecorder:
     def __init__(self, config: CameraConfig) -> None:
         self.config = config
         self.start_time = 0
@@ -91,6 +94,8 @@ class SummaryRecorder:
         self.out_width = int(
             (config.detect.width / config.detect.height) * self.out_height
         )
+
+        os.mkdir(os.path.join(CACHE_DIR, "preview_frames"))
 
     def should_write_frame(
         self,
@@ -128,7 +133,10 @@ class SummaryRecorder:
         )
         _, jpg = cv2.imencode(".jpg", frame)
         with open(
-            os.path.join(CACHE_DIR, f"summary_{self.config.name}-{frame_time}.jpg"),
+            os.path.join(
+                CACHE_DIR,
+                f"{FOLDER_PREVIEW_FRAMES}/summary_{self.config.name}-{frame_time}.jpg",
+            ),
             "wb",
         ) as j:
             j.write(jpg.tobytes())
