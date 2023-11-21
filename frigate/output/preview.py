@@ -5,6 +5,7 @@ import os
 import queue
 import subprocess as sp
 import threading
+from pathlib import Path
 
 import cv2
 
@@ -95,7 +96,7 @@ class PreviewRecorder:
             (config.detect.width / config.detect.height) * self.out_height
         )
 
-        os.mkdir(os.path.join(CACHE_DIR, "preview_frames"))
+        Path(os.path.join(CACHE_DIR, "preview_frames")).mkdir(exist_ok=True)
 
     def should_write_frame(
         self,
